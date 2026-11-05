@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-@gkc_ht の予約投稿スクリプト（Instagram API with Instagram Login）
+@gkc_ht の予約投稿スクリプト（Instagram API。ビジネスポートフォリオのシステムユーザーのトークンを使う）
 
 schedule.json の予定のうち、
   ・approved が true
@@ -15,16 +15,17 @@ schedule.json の予定のうち、
   python3 post.py                         実際に投稿する（GitHub Actions から呼ぶ）
 
 環境変数（実際に投稿するときだけ必要）
-  IG_ACCESS_TOKEN   Instagram User の長期アクセストークン
-  IG_USER_ID        Instagram のユーザーID（数字）
+  IG_ACCESS_TOKEN   システムユーザー gkc_poster のアクセストークン（無期限）
+  IG_USER_ID        Instagram のユーザーID（数字。gkc_ht は 17841460361749613）
   IMAGE_BASE_URL    画像を置いている公開URLの先頭（例: https://raw.githubusercontent.com/OWNER/REPO/main）
   IG_API_VERSION    省略時 v27.0
+  IG_GRAPH_HOST     省略時 graph.facebook.com（Instagramログインのトークンを使うときだけ graph.instagram.com）
 """
 import argparse, datetime as dt, json, os, struct, sys, time, urllib.error, urllib.parse, urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 JST = dt.timezone(dt.timedelta(hours=9))
-GRAPH = 'https://graph.instagram.com'
+GRAPH = 'https://' + os.environ.get('IG_GRAPH_HOST', 'graph.facebook.com')
 WINDOW = dt.timedelta(hours=24)        # 予定時刻からこの時間を過ぎたものは投稿しない（古い予定が急に出ないように）
 MAX_ITEMS = 20                         # カルーセルの上限（Meta の仕様）
 MAX_CAPTION = 2200                     # キャプションの上限（Meta の仕様）

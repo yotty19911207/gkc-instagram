@@ -1,7 +1,8 @@
 # gkc-instagram：@gkc_ht の予約投稿
 
 群馬県家庭教師センターのインスタ（@gkc_ht）に、決めた日時に自動で投稿する仕組み。
-GitHub Actions が日本時間の9〜23時に毎時動き、`schedule.json` で時間が来た投稿を Instagram API で出す。
+GitHub Actions が日本時間の9〜23時に毎時動き、`schedule.json` で時間が来た投稿を Instagram API（graph.facebook.com）で出す。
+トークンは、ビジネスポートフォリオ「群馬県家庭教師センター」のシステムユーザー gkc_poster のもの（無期限）。
 
 ## しくみ
 
@@ -12,7 +13,7 @@ schedule.json                        いつ、どの投稿を出すか。approve
 posted.json                          投稿した記録（Actions が書き込む。手で消さない）
 post.py                              投稿スクリプト（標準ライブラリだけ）
 .github/workflows/post.yml           毎時の予約投稿
-.github/workflows/refresh-token.yml  毎週月曜にアクセストークンを更新（60日で切れるため）
+check_token.py                       トークンが gkc_ht に使えるかを確かめる（読み取りだけ）
 ```
 
 安全のための決まり：
@@ -26,55 +27,52 @@ post.py                              投稿スクリプト（標準ライブラ�
 
 ## 初期設定（最初の1回だけ）
 
-### 1. Meta のアプリを作り、アクセストークンを出す
+2026-11-05 時点の構成：
+- Meta のアプリ：gkc_poster（ユースケース「Instagramでメッセージとコンテンツを管理」、統合ログイン）
+- ビジネスポートフォリオ：群馬県家庭教師センター（ID 1678479983877882）。Serendute とは別
+- Facebookページ：群馬県家庭教師センター（新）（ID 1340459959160464）。@gkc_ht はこのページにリンク
+- Instagram：@gkc_ht（ID 17841460361749613）
+- システムユーザー：gkc_poster
 
-1. https://developers.facebook.com/ にログインし、「マイアプリ」→「アプリを作成」
-2. ユースケースで Instagram の API（「Instagram API with Instagram Login」／Instagramビジネスログイン）を選ぶ
-3. アプリの「Instagram」の設定画面で、@gkc_ht を追加し、アクセストークンを生成する
-   - 必要な権限：`instagram_business_basic`、`instagram_business_content_publish`
-   - 生成されるのは長期トークン（60日）。以後は refresh-token のワークフローが毎週更新する
-4. トークンはチャットやファイルに貼らない。次の手順で、ターミナルから直接 GitHub に入れる
+### 1. システムユーザーにアセットを割り当てる
 
-画面の名前は Meta の変更で変わることがある。2026-11 時点の公式ドキュメント：
-https://developers.facebook.com/docs/instagram-platform/content-publishing/
+business.facebook.com/settings（左上が「群馬県家庭教師センター」）→「ユーザー」→「システムユーザー」→ gkc_poster →「アセットを割り当てる」
+- Facebookページ「群馬県家庭教師センター（新）」：フルコントロール
+- Instagramアカウント @gkc_ht：出てくれば、同じように割り当てる
 
-### 2. Instagram のユーザーID を調べる
+### 2. トークンを作る
 
-ターミナルで（トークンは画面に表示されない）：
+同じ画面の「新しいトークンを生成」で、アプリ gkc_poster を選び、次の権限にチェックする。
+- `instagram_basic`、`instagram_content_publish`（投稿に必要）
+- `pages_show_list`、`pages_read_engagement`、`business_management`（ページ経由で @gkc_ht を見るのに必要）
+
+広告・メッセージ・コメントの権限は、投稿には要らないので付けない（漏れたときの被害を小さくするため）。
+トークンはチャットやファイルに貼らない。
+
+### 3. 確かめてから GitHub に入れる
 
 ```bash
-read -s IG_TOKEN && curl -s "https://graph.instagram.com/v27.0/me?fields=user_id,username&access_token=$IG_TOKEN"; unset IG_TOKEN
+python3 check_token.py
 ```
 
-返ってきた `user_id`（数字）が IG_USER_ID。`username` が `gkc_ht` になっていることも確かめる。
-
-### 3. GitHub にリポジトリを作る
-
-```bash
-gh repo create yotty19911207/gkc-instagram --public --source . --push
-```
-
-### 4. Secret を入れる（値は聞かれたときに貼る。画面には残らない）
+「使えます。IG_GRAPH_HOST は graph.facebook.com」と出たら：
 
 ```bash
 gh secret set IG_ACCESS_TOKEN --repo yotty19911207/gkc-instagram
 ```
 
 ```bash
-gh secret set IG_USER_ID --repo yotty19911207/gkc-instagram
+gh secret set IG_USER_ID --repo yotty19911207/gkc-instagram --body 17841460361749613
 ```
 
-```bash
-gh secret set GH_PAT --repo yotty19911207/gkc-instagram
-```
+### 4. 古いトークンを取り消す
 
-GH_PAT は、トークンの自動更新で Secret を書き換えるための GitHub の個人アクセストークン。
-GitHub →「Settings」→「Developer settings」→「Fine-grained tokens」で作る。対象は gkc-instagram だけ、権限は「Secrets：Read and write」だけ。有効期限は1年にして、切れる前に作り直す。
+前に作ったトークンをチャットなどに貼ってしまった場合は、新しいトークンを作るだけでは古いものが使えなくならないことがある。
+システムユーザー gkc_poster の画面の「トークンを取り消す」で、古いトークンを取り消す（新しいトークンを入れた後で）。
 
 ### 5. 動作を確かめる
 
-1. GitHub の「Actions」→「post」→「Run workflow」。予定がなければ「投稿する予定はありません」で終わる
-2. 「refresh-token」も一度手動で動かし、「トークンを更新しました」と出ることを確かめる（トークンを作ってから24時間たってから）
+GitHub の「Actions」→「post」→「Run workflow」。予定がなければ「投稿する予定はありません」で終わる。
 
 ## ふだんの運用（毎週）
 
