@@ -10,14 +10,14 @@
     "date": "2026-11-11",
     "time": "19:00",
     "post": "02_reward",
-    "approved": false,
+    "approved": true,
     "memo": "時給2,000円、何が含まれる？"
   },
   {
     "date": "2026-11-13",
     "time": "19:00",
     "post": "03_first-timers",
-    "approved": false,
+    "approved": true,
     "memo": "勉強に自信がなくても、家庭教師はできる？"
   }
 ]
