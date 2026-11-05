@@ -1,9 +1,9 @@
-# 予約投稿：日本時間の 9時〜23時、毎時5分に schedule.json を見て、時間が来た投稿を1件出す
+# 予約投稿：日本時間の 9時〜23時、毎時17分と47分に schedule.json を見て、時間が来た投稿を1件出す
 name: post
 
 on:
   schedule:
-    - cron: '5 0-14 * * *'   # UTC 0〜14時 = 日本時間 9〜23時
+    - cron: '17,47 0-14 * * *'   # UTC 0〜14時 = 日本時間 9〜23時。混む毎時0分付近を避け、1時間に2回起動
   workflow_dispatch: {}
 
 concurrency:

@@ -1,7 +1,7 @@
 # gkc-instagram：@gkc_ht の予約投稿
 
 群馬県家庭教師センターのインスタ（@gkc_ht）に、決めた日時に自動で投稿する仕組み。
-GitHub Actions が日本時間の9〜23時に毎時動き、`schedule.json` で時間が来た投稿を Instagram API（graph.facebook.com）で出す。
+GitHub Actions が日本時間の9〜23時に1時間に2回（17分・47分）動き、`schedule.json` で時間が来た投稿を Instagram API（graph.facebook.com）で出す。
 トークンは、ビジネスポートフォリオ「群馬県家庭教師センター」のシステムユーザー gkc_poster のもの（無期限）。
 
 ## しくみ
@@ -12,7 +12,7 @@ posts/<投稿ID>/caption.txt          キャプション
 schedule.json                        いつ、どの投稿を出すか。approved が true のものだけ出る
 posted.json                          投稿した記録（Actions が書き込む。手で消さない）
 post.py                              投稿スクリプト（標準ライブラリだけ）
-.github/workflows/post.yml           毎時の予約投稿
+.github/workflows/post.yml           予約投稿（1時間に2回）
 check_token.py                       トークンが gkc_ht に使えるかを確かめる（読み取りだけ）
 ```
 
@@ -95,3 +95,9 @@ python3 post.py --dry-run --now 2026-11-09T19:05
 
 - 1件だけ止める：`schedule.json` のその予定を `approved: false` にしてプッシュ
 - 全部止める：GitHub の「Actions」→「post」→「…」→「Disable workflow」
+
+## 定時実行が動かないとき
+
+GitHub の定時実行（schedule）は、混雑時に遅れたり飛ばされたりする。2026-11-05 は一度も動かず、19:00 の投稿を 20:25 に手動で出した。
+- 予定の時刻を過ぎても出ていなければ、`gh workflow run post.yml` で手動起動する（予定から24時間以内なら出る）
+- `gh run list --workflow post.yml` で、event が `schedule` の実行があるかを確かめる
