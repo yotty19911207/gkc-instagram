@@ -1,0 +1,46 @@
+# 予約投稿：日本時間の 9時〜23時、毎時5分に schedule.json を見て、時間が来た投稿を1件出す
+name: post
+
+on:
+  schedule:
+    - cron: '5 0-14 * * *'   # UTC 0〜14時 = 日本時間 9〜23時
+  workflow_dispatch: {}
+
+concurrency:
+  group: instagram-post
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 予定の中身を確かめる
+        run: python3 post.py --check
+
+      - name: 時間が来た投稿を出す
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IMAGE_BASE_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
+          COMMIT_HOOK: >-
+            git config user.name "github-actions[bot]" &&
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com" &&
+            git add posted.json && git commit -q -m "投稿を開始" && git push -q
+        run: python3 post.py
+
+      - name: 結果を記録する
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet -- posted.json; then
+            git add posted.json
+            git commit -q -m "投稿の結果を記録"
+            git push -q
+          fi
