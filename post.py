@@ -181,7 +181,18 @@ def main():
     ap.add_argument('--check', action='store_true', help='予定と中身を確かめるだけ')
     ap.add_argument('--dry-run', action='store_true', help='投稿されるものを表示するだけ')
     ap.add_argument('--now', help='現在時刻の代わり（日本時間、例: 2026-11-09T19:05）')
+    ap.add_argument('--verify', action='store_true', help='Secret のトークンで gkc_ht が見えるかだけ確かめる（投稿しない）')
     a = ap.parse_args()
+
+    if a.verify:
+        ver = os.environ.get('IG_API_VERSION', 'v27.0')
+        uid = os.environ['IG_USER_ID']
+        res = api('GET', '%s/%s' % (ver, uid), {'fields': 'username'}, os.environ['IG_ACCESS_TOKEN'])
+        lim = api('GET', '%s/%s/content_publishing_limit' % (ver, uid), {}, os.environ['IG_ACCESS_TOKEN'])
+        print('アカウント: %s / 投稿の上限の確認: %s' % (res.get('username'), json.dumps(lim, ensure_ascii=False)))
+        if res.get('username') != 'gkc_ht':
+            raise SystemExit('gkc_ht ではありません')
+        return
 
     schedule = load_json('schedule.json', [])
     posted = load_json('posted.json', [])

@@ -1,0 +1,20 @@
+# Secret に入れたトークンで gkc_ht が見えるかを確かめる（投稿はしない）。手動で実行する
+name: verify
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: トークンを確かめる
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_GRAPH_HOST: ${{ vars.IG_GRAPH_HOST || 'graph.facebook.com' }}
+        run: python3 post.py --verify
