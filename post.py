@@ -27,6 +27,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 JST = dt.timezone(dt.timedelta(hours=9))
 GRAPH = 'https://' + os.environ.get('IG_GRAPH_HOST', 'graph.facebook.com')
 WINDOW = dt.timedelta(hours=24)        # 予定時刻からこの時間を過ぎたものは投稿しない（古い予定が急に出ないように）
+POST_HOURS = range(9, 24)               # 投稿してよい時間帯（日本時間 9:00〜23:59）。深夜・早朝に出さない
 MAX_ITEMS = 20                         # カルーセルの上限（Meta の仕様）
 MAX_CAPTION = 2200                     # キャプションの上限（Meta の仕様）
 
@@ -210,6 +211,10 @@ def main():
                 print('     - ' + m)
             bad += bool(errs)
         sys.exit(1 if bad else 0)
+
+    if now.hour not in POST_HOURS:
+        print('%s は投稿しない時間帯です（日本時間 9〜23時だけ投稿する）' % now.strftime('%Y-%m-%d %H:%M'))
+        return
 
     due = due_entries(schedule, posted, now)
     if not due:

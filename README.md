@@ -101,3 +101,12 @@ python3 post.py --dry-run --now 2026-11-09T19:05
 GitHub の定時実行（schedule）は、混雑時に遅れたり飛ばされたりする。2026-11-05 は一度も動かず、19:00 の投稿を 20:25 に手動で出した。
 - 予定の時刻を過ぎても出ていなければ、`gh workflow run post.yml` で手動起動する（予定から24時間以内なら出る）
 - `gh run list --workflow post.yml` で、event が `schedule` の実行があるかを確かめる
+
+## Mac からの起動（2026-11-10〜）
+
+GitHub の定時実行は1日3回ほどしか動かず、深夜3時台に起動することもあった。そのため：
+- post.py は日本時間 9〜23時だけ投稿する（それ以外の時間に起動しても何もしない）
+- Mac の launchd が毎日 19:05 と 21:05 に `gh workflow run post.yml` を叩く（`mac/`）。Mac が起きていないと動かないので、そのときは GitHub の定時実行に任せる
+- 入れ方：`mac/trigger.sh` を `~/Library/Application Support/gkc-instagram/` に、plist を `~/Library/LaunchAgents/` にコピーして `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.gkc.instagram-trigger.plist`
+- ログ：`~/Library/Logs/gkc-instagram-trigger.log`
+- 止め方：`launchctl bootout gui/$(id -u)/com.gkc.instagram-trigger`
