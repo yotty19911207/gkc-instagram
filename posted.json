@@ -14,5 +14,11 @@
     "status": "published",
     "media_id": "18109081532460929",
     "published_at": "2026-11-05 20:26"
+  },
+  {
+    "post": "02_reward",
+    "scheduled": "2026-11-11 19:00",
+    "started_at": "2026-11-11 19:05",
+    "status": "publishing"
   }
 ]
