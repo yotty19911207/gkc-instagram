@@ -27,6 +27,7 @@
     "post": "03_first-timers",
     "scheduled": "2026-11-13 19:00",
     "started_at": "2026-11-13 19:05",
-    "status": "publishing"
+    "status": "failed",
+    "error": "API POST v27.0/17841460361749613/media が失敗しました: 400 {\"error\":{\"message\":\"Unsupported post request. Object with ID '17841460361749613' does not exist, cannot be loaded due to missing permissions, or does not support this operation. Please read the Graph API documentation at https://developers.facebook.com/docs/graph-api\",\"code\":100,\"type\":\"GraphMethodException\",\"error_subcode\":33,\"fbtrace_id\":\"ARWWtdhw9Nq3izEcEfjVNSI\"}}"
   }
 ]
